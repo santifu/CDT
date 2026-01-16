@@ -17,6 +17,17 @@
             <p>Log your team's progress. Data updates in real-time below.</p>
         </header>
 
+        <div id="timelineControls" class="timeline-bar">
+            <button type="button" id="btnPrevDay" class="btn-sm">◀</button>
+            <span id="currentDayLabel" class="day-label">Day 1</span>
+            <button type="button" id="btnNextDay" class="btn-sm">▶</button>
+            <button type="button" id="btnSaveCheckpoint" class="btn-primary-sm">💾 Save Day</button>
+            <button type="button" id="btnClearData" class="btn-danger-sm" style="margin-left:auto;">🗑️ Reset
+                Data</button>
+        </div>
+
+        <hr>
+
         <form id="checkpointForm">
             <section class="context-section">
                 <h2>Context</h2>
@@ -149,6 +160,11 @@
             <h2>Live Mindmap</h2>
             <p class="subtitle">Visual representation of your current entry.</p>
             <div id="mynetwork"></div>
+
+            <div id="nodeHistoryPanel" class="history-panel" style="display:none;">
+                <h3>Node History & Connections</h3>
+                <div id="nodeHistoryContent">Select a node to see details...</div>
+            </div>
 
             <h2>Live JSON Data</h2>
             <pre id="jsonPreview">Waiting for data...</pre>
