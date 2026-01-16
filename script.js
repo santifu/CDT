@@ -2,6 +2,9 @@
 let network = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Renderizar Tags desde tags.js global
+    renderTags();
+
     // 1. Configurar hora por defecto
     const now = new Date();
     document.getElementById('time').value = now.toTimeString().split(' ')[0].substring(0, 5);
@@ -23,6 +26,39 @@ document.addEventListener('DOMContentLoaded', () => {
     initLivePreview();
 });
 
+// --- LÓGICA DE RENDERIZADO DE TAGS ---
+function renderTags() {
+    // Buscamos todos los contenedores de tags
+    const containers = document.querySelectorAll('.tag-container');
+
+    containers.forEach(container => {
+        const type = container.dataset.type; // PEOPLE, TOOLS, ARTIFACTS
+        const fieldName = container.dataset.name; // people, tools, artifacts
+
+        // Obtenemos la lista de tags desde la variable global TAGS (cargada desde tags.js)
+        const items = TAGS[type] || [];
+
+        // Creamos checkboxes
+        items.forEach(item => {
+            const label = document.createElement('label');
+            label.style.display = 'inline-block';
+            label.style.marginRight = '10px';
+            label.style.cursor = 'pointer';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = fieldName;
+            checkbox.value = item;
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' ' + item));
+
+            container.appendChild(label);
+        });
+    });
+}
+
+
 // --- LÓGICA DE ACTUALIZACIÓN EN TIEMPO REAL ---
 
 function initLivePreview() {
@@ -36,14 +72,13 @@ function initLivePreview() {
     };
 
     // Escuchar cualquier cambio en el formulario
-    const inputs = form.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        input.addEventListener('input', updateAll);
-        input.addEventListener('change', updateAll); // Para sliders/selects
-    });
+    // Inputs tradicionales + Checkboxes generados dinámicamente
+    // Usamos delegación de eventos para capturar cambios en los nuevos checkboxes
+    form.addEventListener('input', updateAll);
+    form.addEventListener('change', updateAll);
 
     // Ejecutar una vez al inicio
-    updateAll();
+    setTimeout(updateAll, 100); // Pequeño delay para asegurar renderizado
 }
 
 function updateJsonPreview(data) {
@@ -55,6 +90,9 @@ function updateNetworkGraph(data) {
     let nodes = [];
     let edges = [];
     let idCounter = 1;
+
+    // Mapa para rastrear nodos de tags y no duplicarlos: "TagName" -> NodeID
+    const globalTagMap = new Map();
 
     // NODO CENTRAL: Nombre del Equipo
     const teamNodeId = idCounter++;
@@ -88,23 +126,37 @@ function updateNetworkGraph(data) {
         // Conectar Equipo -> Fase
         edges.push({ from: teamNodeId, to: phaseNodeId, length: 150 });
 
-        // Crear Nodos Hijos: Tools y Artifacts (si existen)
-        const items = [
-            ...phaseData.tools.map(t => ({ label: `🔧 ${t}`, color: '#ffcc00' })),
-            ...phaseData.artifacts.map(a => ({ label: `📦 ${a}`, color: '#ff9f43' }))
-        ];
+        // Helper para procesar items (tags)
+        const processTags = (list, color, emoji) => {
+            list.forEach(tagName => {
+                let tagNodeId;
 
-        items.forEach(item => {
-            const itemId = idCounter++;
-            nodes.push({
-                id: itemId,
-                label: item.label,
-                shape: 'box',
-                color: { background: item.color, border: 'white' },
-                font: { size: 12 }
+                // Verificar si ya existe el nodo para este tag
+                if (globalTagMap.has(tagName)) {
+                    tagNodeId = globalTagMap.get(tagName);
+                } else {
+                    // Crear nuevo nodo de tag
+                    tagNodeId = idCounter++;
+                    globalTagMap.set(tagName, tagNodeId);
+
+                    nodes.push({
+                        id: tagNodeId,
+                        label: `${emoji} ${tagName}`,
+                        shape: 'box',
+                        color: { background: color, border: 'white' },
+                        font: { size: 12 }
+                    });
+                }
+
+                // Crear arista desde la Fase actual al Tag (ya sea nuevo o existente)
+                edges.push({ from: phaseNodeId, to: tagNodeId });
             });
-            edges.push({ from: phaseNodeId, to: itemId });
-        });
+        };
+
+        // Procesar Tools y Artifacts (y People)
+        processTags(phaseData.people, '#ff6b6b', '👤');
+        processTags(phaseData.tools, '#ffcc00', '🔧');
+        processTags(phaseData.artifacts, '#ff9f43', '📦');
     }
 
     // Renderizar con Vis.js
@@ -115,10 +167,10 @@ function updateNetworkGraph(data) {
     };
 
     const options = {
-        layout: { randomSeed: 2 }, // Para mantener consistencia visual
+        layout: { randomSeed: 2 },
         physics: {
             enabled: true,
-            stabilization: false, // Animación continua
+            stabilization: false,
             barnesHut: { gravitationalConstant: -3000, springLength: 100 }
         }
     };
@@ -126,7 +178,6 @@ function updateNetworkGraph(data) {
     if (network === null) {
         network = new vis.Network(container, visData, options);
     } else {
-        // Solo actualizamos datos para no resetear zoom/posición
         network.setData(visData);
     }
 }
@@ -143,14 +194,21 @@ function getFormData() {
 
     for (const [htmlId, jsonKey] of Object.entries(phasesMap)) {
         const container = document.getElementById(htmlId);
+
+        // Helper para obtener valor de text/range
         const getVal = (name) => container.querySelector(`[name="${name}"]`).value;
-        const splitStr = (str) => str.split(',').map(s => s.trim()).filter(s => s !== "");
+
+        // Helper para obtener valores de checkboxes seleccionados
+        const getCheckedVals = (name) => {
+            const checkboxes = container.querySelectorAll(`input[name="${name}"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        };
 
         phasesData[jsonKey] = {
             distributionLevel: parseInt(getVal('distributionLevel')),
-            people: splitStr(getVal('people')),
-            tools: splitStr(getVal('tools')),
-            artifacts: splitStr(getVal('artifacts')),
+            people: getCheckedVals('people'),     // ahora devuelve array
+            tools: getCheckedVals('tools'),       // ahora devuelve array
+            artifacts: getCheckedVals('artifacts'), // ahora devuelve array
             narrative: getVal('narrative').trim()
         };
     }
