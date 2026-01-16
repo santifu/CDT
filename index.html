@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon Checkpoint & Live Viz</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Hackathon Checkpoint</h1>
+            <p>Log your team's progress. Data updates in real-time below.</p>
+        </header>
+
+        <form id="checkpointForm">
+            <section class="context-section">
+                <h2>Context</h2>
+                <div class="form-group">
+                    <label for="teamName">Team Name:</label>
+                    <input type="text" id="teamName" placeholder="e.g. The Innovators" required>
+                </div>
+                <div class="row">
+                    <div class="form-group half">
+                        <label for="day">Day Number:</label>
+                        <input type="number" id="day" min="1" value="1" required>
+                    </div>
+                    <div class="form-group half">
+                        <label for="time">Time:</label>
+                        <input type="time" id="time" required>
+                    </div>
+                </div>
+            </section>
+
+            <hr>
+
+            <h2>Phases Activity</h2>
+            <p class="subtitle">Fill in the details. Use commas to separate items (e.g. "Figma, React").</p>
+
+            <fieldset class="phase-card" id="phase-D">
+                <legend>Design (D)</legend>
+                <div class="form-group">
+                    <label>Distribution Level (0-4): <span class="range-val">2</span></label>
+                    <input type="range" class="dist-slider" name="distributionLevel" min="0" max="4" value="2">
+                </div>
+                <div class="form-group">
+                    <label>People:</label>
+                    <input type="text" name="people" placeholder="Alice, Bob">
+                </div>
+                <div class="form-group">
+                    <label>Tools:</label>
+                    <input type="text" name="tools" placeholder="Figma, Whiteboard">
+                </div>
+                <div class="form-group">
+                    <label>Artifacts:</label>
+                    <input type="text" name="artifacts" placeholder="Sketches, User Flow">
+                </div>
+                <div class="form-group">
+                    <label>Narrative:</label>
+                    <textarea name="narrative" rows="2"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="phase-card" id="phase-C">
+                <legend>Coding (C)</legend>
+                <div class="form-group">
+                    <label>Distribution Level (0-4): <span class="range-val">2</span></label>
+                    <input type="range" class="dist-slider" name="distributionLevel" min="0" max="4" value="2">
+                </div>
+                <div class="form-group">
+                    <label>People:</label>
+                    <input type="text" name="people" placeholder="Charlie">
+                </div>
+                <div class="form-group">
+                    <label>Tools:</label>
+                    <input type="text" name="tools" placeholder="VS Code, GitHub">
+                </div>
+                <div class="form-group">
+                    <label>Artifacts:</label>
+                    <input type="text" name="artifacts" placeholder="Repo, API">
+                </div>
+                <div class="form-group">
+                    <label>Narrative:</label>
+                    <textarea name="narrative" rows="2"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="phase-card" id="phase-P">
+                <legend>Prototyping (P)</legend>
+                <div class="form-group">
+                    <label>Distribution Level (0-4): <span class="range-val">2</span></label>
+                    <input type="range" class="dist-slider" name="distributionLevel" min="0" max="4" value="2">
+                </div>
+                <div class="form-group">
+                    <label>People:</label>
+                    <input type="text" name="people" placeholder="Eve">
+                </div>
+                <div class="form-group">
+                    <label>Tools:</label>
+                    <input type="text" name="tools" placeholder="3D Printer">
+                </div>
+                <div class="form-group">
+                    <label>Artifacts:</label>
+                    <input type="text" name="artifacts" placeholder="Case v1">
+                </div>
+                <div class="form-group">
+                    <label>Narrative:</label>
+                    <textarea name="narrative" rows="2"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="phase-card" id="phase-O">
+                <legend>Documentation (O)</legend>
+                <div class="form-group">
+                    <label>Distribution Level (0-4): <span class="range-val">2</span></label>
+                    <input type="range" class="dist-slider" name="distributionLevel" min="0" max="4" value="2">
+                </div>
+                <div class="form-group">
+                    <label>People:</label>
+                    <input type="text" name="people" placeholder="All">
+                </div>
+                <div class="form-group">
+                    <label>Tools:</label>
+                    <input type="text" name="tools" placeholder="Notion">
+                </div>
+                <div class="form-group">
+                    <label>Artifacts:</label>
+                    <input type="text" name="artifacts" placeholder="Slides">
+                </div>
+                <div class="form-group">
+                    <label>Narrative:</label>
+                    <textarea name="narrative" rows="2"></textarea>
+                </div>
+            </fieldset>
+
+            <div class="actions">
+                <button type="button" id="btnJson" class="btn btn-primary">Download JSON</button>
+                <button type="button" id="btnCsv" class="btn btn-secondary">Download CSV</button>
+            </div>
+        </form>
+
+        <hr>
+
+        <section class="viz-section">
+            <h2>Live Mindmap</h2>
+            <p class="subtitle">Visual representation of your current entry.</p>
+            <div id="mynetwork"></div>
+
+            <h2>Live JSON Data</h2>
+            <pre id="jsonPreview">Waiting for data...</pre>
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
